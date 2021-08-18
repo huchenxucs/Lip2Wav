@@ -3,7 +3,7 @@ import sys
 if sys.version_info[0] < 3 and sys.version_info[1] < 2:
 	raise Exception("Must be using >= Python 3.2")
 
-from os import listdir, path
+from os import path
 #
 # if not path.isfile('face_detection/detection/sfd/s3fd.pth'):
 # 	raise FileNotFoundError('Save the s3fd model to face_detection/detection/sfd/s3fd.pth \
@@ -12,7 +12,7 @@ from os import listdir, path
 # import multiprocessing as mp
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import numpy as np
-import argparse, os, cv2, traceback, subprocess
+import argparse, traceback
 from tqdm import tqdm
 from glob import glob
 from synthesizer import audio
