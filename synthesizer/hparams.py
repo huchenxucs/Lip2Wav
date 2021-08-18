@@ -10,6 +10,25 @@ def get_image_list(split, data_root):
             filelist.extend(list(glob(os.path.join(data_root, 'preprocessed', vid_id, '*/*.jpg'))))   
     return filelist
 
+def get_image_list_from_csv(split, data_root):
+    filelist = []
+    text_data = []
+    with open(os.path.join(data_root, 'metadata.csv'), encoding='utf-8', mode='r') as f:
+        for line in f:
+            split = line.split('|')
+            text_data.append(split[0].strip())
+
+    if split == 'train':
+        text_data = text_data[hparams['num_val_samples']:]
+    else:
+        text_data = text_data[0:hparams['num_val_samples']]
+
+    for item_id in text_data:
+        episode_id, clip_id = item_id.rsplit('-', 1)
+        filelist.extend(list(glob(os.path.join(data_root, 'preprocessed', episode_id, clip_id, '*.jpg'))))
+
+    return filelist
+
 # Default hyperparameters
 hparams = HParams(
     # Comma-separated list of cleaners to run on text prior to training and eval. For non-English

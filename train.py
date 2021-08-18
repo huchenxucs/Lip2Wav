@@ -1,7 +1,7 @@
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-from synthesizer.hparams import hparams, get_image_list
+from synthesizer.hparams import hparams, get_image_list, get_image_list_from_csv
 from synthesizer.train import tacotron_train
 from utils.argutils import print_args
 #from synthesizer import infolog
@@ -15,8 +15,11 @@ def prepare_run(args):
     run_name = args.name
     log_dir = os.path.join(args.models_dir, "logs-{}".format(run_name))
     os.makedirs(log_dir, exist_ok=True)
-    all_images = get_image_list('train', args.data_root)
-    all_test_images = get_image_list('val', args.data_root)
+    # all_images = get_image_list('train', args.data_root)
+    # all_test_images = get_image_list('val', args.data_root)
+
+    all_images = get_image_list_from_csv('train', args.data_root)
+    all_test_images = get_image_list_from_csv('val', args.data_root)
 
     hparams.add_hparam('all_images', all_images)
     hparams.add_hparam('all_test_images', all_test_images)
