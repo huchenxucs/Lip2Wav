@@ -19,9 +19,9 @@ def get_image_list_from_csv(split, data_root):
             text_data.append(split[0].strip())
 
     if split == 'train':
-        text_data = text_data[hparams['num_val_samples']:]
+        text_data = text_data[hparams.num_val_samples:]
     else:
-        text_data = text_data[0:hparams['num_val_samples']]
+        text_data = text_data[0:hparams.num_val_samples]
 
     for item_id in text_data:
         episode_id, clip_id = item_id.rsplit('-', 1)
@@ -359,6 +359,7 @@ hparams = HParams(
     mel_step_size=240,
     img_size=96,
     fps=30,
+    num_val_samples=200,
 )
 
 
