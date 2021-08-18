@@ -15,8 +15,8 @@ def get_image_list_from_csv(split, data_root):
     text_data = []
     with open(os.path.join(data_root, 'metadata.csv'), encoding='utf-8', mode='r') as f:
         for line in f:
-            split = line.split('|')
-            text_data.append(split[0].strip())
+            sths = line.split('|')
+            text_data.append(sths[0].strip())
 
     if split == 'train':
         text_data = text_data[hparams.num_val_samples:]

@@ -29,9 +29,10 @@ Highlights
 
 Prerequisites
 -------------
-- `Python 3.7.4` (code has been tested with this version)
+- `Python 3.7.4` (code has been tested with this version) 经测试 python 3.6.8 可以， 3.7.4没成功
 - ffmpeg: `sudo apt-get install ffmpeg`
-- Install necessary packages using `pip install -r requirements.txt`
+- Install necessary packages using `pip install -r requirements.txt`  
+  https://github.com/scikit-learn/scikit-learn/issues/14485 Downgrading to scikit-learn 0.20.3 makes the problem go away.
 - Face detection [pre-trained model](https://www.adrianbulat.com/downloads/python-fan/s3fd-619a316812.pth) should be downloaded to `face_detection/detection/sfd/s3fd.pth`. Alternative [link](https://iiitaphyd-my.sharepoint.com/:u:/g/personal/prajwal_k_research_iiit_ac_in/EZsy6qWuivtDnANIG73iHjIBjMSoojcIV0NULXV-yiuiIg?e=qTasa8) if the above does not work.
 
 Getting the weights
