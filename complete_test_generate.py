@@ -48,17 +48,36 @@ class Generator(object):
 		sif.audio.save_wav(wav, outfile, sr=hp.sample_rate)
 
 
-def get_image_list(split, data_root):
-	filelist = []
-	with open(os.path.join(data_root, '{}.txt'.format(split))) as vidlist:
-		for vid_id in vidlist:
-			vid_id = vid_id.strip()
-			filelist.extend(list(glob(os.path.join(data_root, 'preprocessed', vid_id, '*/*.jpg'))))
-	return filelist
+# def get_image_list(split, data_root):
+# 	filelist = []
+# 	with open(os.path.join(data_root, '{}.txt'.format(split))) as vidlist:
+# 		for vid_id in vidlist:
+# 			vid_id = vid_id.strip()
+# 			filelist.extend(list(glob(os.path.join(data_root, 'preprocessed', vid_id, '*/*.jpg'))))
+# 	return filelist
+
+def get_image_list_from_csv(split, data_root):
+    filelist = []
+    text_data = []
+    with open(os.path.join(data_root, 'metadata.csv'), encoding='utf-8', mode='r') as f:
+        for line in f:
+            sths = line.split('|')
+            text_data.append(sths[0].strip())
+
+    if split == 'train':
+        text_data = text_data[sif.hparams.num_val_samples:]
+    else:
+        text_data = text_data[0:sif.hparams.num_val_samples]
+
+    for item_id in text_data:
+        episode_id, clip_id = item_id.rsplit('-', 1)
+        filelist.extend(list(glob(os.path.join(data_root, 'preprocessed', episode_id, clip_id, '*.jpg'))))
+
+    return filelist
 
 
 def get_testlist(data_root):
-	test_images = get_image_list('test', data_root)
+	test_images = get_image_list_from_csv('test', data_root)
 	print('{} hours is available for testing'.format(len(test_images) / (sif.hparams.fps * 3600.)))
 	test_vids = {}
 	for x in test_images:
