@@ -122,8 +122,10 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-d', "--data_root", help="Speaker folder path", required=True)
 	parser.add_argument('-r', "--results_root", help="Speaker folder path", required=True)
+	parser.add_argument('-g', "--gpu_idx", help="GPU start index", type=int, required=True)
 	parser.add_argument('--checkpoint', help="Path to trained checkpoint", required=True)
 	parser.add_argument("--preset", help="Speaker-specific hyper-params", type=str, required=True)
+
 	args = parser.parse_args()
 
 
@@ -132,7 +134,7 @@ if __name__ == '__main__':
 		sif.hparams.parse_json(f.read())
 
 	sif.hparams.set_hparam('eval_ckpt', args.checkpoint)
-	
+	sif.hparams.set_hparam('tacotron_gpu_start_idx', args.gpu_idx)
 	videos = get_testlist(args.data_root)
 
 	if not os.path.isdir(args.results_root):
