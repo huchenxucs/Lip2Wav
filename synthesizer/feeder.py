@@ -1,4 +1,3 @@
-from sklearn.model_selection import train_test_split
 from synthesizer.utils.text import text_to_sequence
 from synthesizer.infolog import log
 import tensorflow as tf
@@ -9,6 +8,7 @@ import os
 from os.path import dirname, join, basename, isfile
 import cv2
 
+from sklearn.model_selection import train_test_split
 
 _batches_per_group = 4
 

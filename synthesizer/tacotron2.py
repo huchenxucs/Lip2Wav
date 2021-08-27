@@ -2,7 +2,6 @@ from synthesizer.utils.text import text_to_sequence
 from synthesizer.infolog import log
 from synthesizer.models import create_model
 from synthesizer.utils import plot
-from synthesizer import audio
 import tensorflow as tf
 import numpy as np
 import os
@@ -11,6 +10,7 @@ import os
 class Tacotron2:
     def __init__(self, checkpoint_path, hparams, gta=False, model_name="Tacotron"):
         log("Constructing model: %s" % model_name)
+        print("Constructing model: %s" % model_name)
         #Force the batch size to be known in order to use attention masking in batch synthesis
         '''
         inputs = tf.placeholder(tf.int32, (None, None), name="inputs")
@@ -21,13 +21,13 @@ class Tacotron2:
         split_infos = tf.placeholder(tf.int32, shape=(hparams.tacotron_num_gpus, None), name="split_infos")
         '''
         inputs = tf.placeholder(tf.float32, shape=(None, hparams.T, hparams.img_size, 
-                                    hparams.img_size, 3), name="inputs"),
-        input_lengths = tf.placeholder(tf.int32, shape=(None,), name="input_lengths"),
+                                    hparams.img_size, 3), name="inputs")
+        input_lengths = tf.placeholder(tf.int32, shape=(None,), name="input_lengths")
         targets = tf.placeholder(tf.float32, shape=(None, hparams.mel_step_size, hparams.num_mels), 
-               name="mel_targets"),
+               name="mel_targets")
 
         split_infos = tf.placeholder(tf.int32, shape=(hparams.tacotron_num_gpus, None), 
-               name="split_infos"),
+               name="split_infos")
 
         # SV2TTS
         speaker_embeddings = tf.placeholder(tf.float32, shape=(None, 256), 
@@ -35,10 +35,10 @@ class Tacotron2:
         with tf.variable_scope("Tacotron_model") as scope:
             self.model = create_model(model_name, hparams)
             if gta:
-                self.model.initialize(inputs, input_lengths, speaker_embeddings, targets, gta=gta,
-                                      split_infos=split_infos)
+                self.model.initialize(inputs, input_lengths, speaker_embeddings, targets, gta=gta, split_infos=split_infos)
+
             else:
-                self.model.initialize(inputs[0], input_lengths[0], speaker_embeddings[0], split_infos=split_infos[0])
+                self.model.initialize(inputs, input_lengths, speaker_embeddings, split_infos=split_infos)
             
             self.mel_outputs = self.model.tower_mel_outputs
             self.linear_outputs = self.model.tower_linear_outputs if (hparams.predict_linear and not gta) else None
@@ -209,9 +209,6 @@ class Tacotron2:
             saved_mels_paths.append(mel_filename)
             
             if log_dir is not None:
-                #save wav (mel -> wav)
-                wav = audio.inv_mel_spectrogram(mel.T, hparams)
-                audio.save_wav(wav, os.path.join(log_dir, "wavs/wav-{}-mel.wav".format(basenames[i])), sr=hparams.sample_rate)
                 
                 #save alignments
                 plot.plot_alignment(alignments[i], os.path.join(log_dir, "plots/alignment-{}.png".format(basenames[i])),
@@ -222,9 +219,6 @@ class Tacotron2:
                                       title="{}".format(texts[i]), split_title=True)
                 
                 if hparams.predict_linear:
-                    #save wav (linear -> wav)
-                    wav = audio.inv_linear_spectrogram(linears[i].T, hparams)
-                    audio.save_wav(wav, os.path.join(log_dir, "wavs/wav-{}-linear.wav".format(basenames[i])), sr=hparams.sample_rate)
                     
                     #save linear spectrogram plot
                     plot.plot_spectrogram(linears[i], os.path.join(log_dir, "plots/linear-{}.png".format(basenames[i])),
@@ -255,3 +249,8 @@ class Tacotron2:
         #Determine each mel length by the stop token predictions. (len = first occurence of 1 in stop_tokens row wise)
         output_lengths = [row.index(1) for row in np.round(stop_tokens).tolist()]
         return output_lengths
+
+if __name__ == '__main__':
+    from synthesizer.hparams import hparams
+    mod = Tacotron2(None, hparams)
+    print("Finish")

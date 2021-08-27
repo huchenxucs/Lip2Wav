@@ -1,10 +1,10 @@
-import synthesizer
-from synthesizer import inference as sif
 import numpy as np
 import sys, cv2, os, pickle, argparse, subprocess
 from tqdm import tqdm
 from shutil import copy
 from glob import glob
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "0"
+from synthesizer import inference as sif
 
 class Generator(object):
 	def __init__(self):
@@ -67,6 +67,7 @@ def get_image_list_from_csv(split, data_root):
     if split == 'train':
         text_data = text_data[sif.hparams.num_val_samples:]
     else:
+        #text_data = text_data[0:sif.hparams.num_val_samples]
         text_data = text_data[0:sif.hparams.num_val_samples]
 
     for item_id in text_data:
@@ -150,8 +151,9 @@ if __name__ == '__main__':
 	if not os.path.isdir(WAVS_ROOT):
 		os.mkdir(WAVS_ROOT)
 	else:
-		files_to_delete.extend(list(glob(WAVS_ROOT + '*')))
-	for f in files_to_delete: os.remove(f)
+		pass
+		#files_to_delete.extend(list(glob(WAVS_ROOT + '*')))
+	#for f in files_to_delete: os.remove(f)
 
 	g = Generator()
 	template = 'ffmpeg -y -loglevel panic -ss {} -i {} -to {} -strict -2 {}'

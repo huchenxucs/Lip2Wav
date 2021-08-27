@@ -2,14 +2,13 @@ from synthesizer.tacotron2 import Tacotron2
 from synthesizer.hparams import hparams
 from multiprocess.pool import Pool  # You're free to use either one
 #from multiprocessing import Pool   # 
-from synthesizer import audio
 from pathlib import Path
 from typing import Union, List
 import tensorflow as tf
 import numpy as np
 import numba.cuda
-import librosa
 
+from synthesizer import audio
 
 class Synthesizer:
     sample_rate = hparams.sample_rate
@@ -59,6 +58,7 @@ class Synthesizer:
         if self._low_mem:
             raise Exception("Cannot load the synthesizer permanently in low mem mode")
         tf.reset_default_graph()
+        print("\n###### In inference load() ##########\n")
         self._model = Tacotron2(None, hparams)
             
     def synthesize_spectrograms(self, faces, return_alignments=False):

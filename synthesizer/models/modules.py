@@ -221,6 +221,7 @@ class EncoderConvolutions3D:
             c = self.c
 
             for i in range(self.enc_conv_num_blocks):
+                
                 x = self.conv3d(x, (5 if i == 0 else 3), c, (1, 2, 2), self.activation,
                            self.is_training, "conv_layer_{}_".format(i + 1) + self.scope)
                 for j in range(2):
@@ -238,6 +239,7 @@ class EncoderConvolutions3D:
     def conv3d(self, inputs, kernel_size, channels, strides, 
                     activation, is_training, scope, padding='same', residual=False):
         with tf.variable_scope(scope):
+#             import ipdb; ipdb.set_trace()
             conv3d_output = tf.layers.conv3d(
                 inputs,
                 filters=channels,

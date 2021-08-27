@@ -46,6 +46,7 @@ class Tacotron():
             T_out is number of steps in the output time series, M is num_mels, and values are 
             entries in the mel spectrogram. Only needed for training.
         """
+#         import ipdb; ipdb.set_trace()
         if mel_targets is None and stop_token_targets is not None:
             raise ValueError("no multi targets were provided but token_targets were given")
         #if mel_targets is not None and stop_token_targets is None and not gta:
@@ -67,7 +68,8 @@ class Tacotron():
         split_device = "/cpu:0" if self._hparams.tacotron_num_gpus > 1 or \
 								   self._hparams.split_on_cpu else "/gpu:{}".format(
             self._hparams.tacotron_gpu_start_idx)
-        with tf.device(split_device):
+#         with tf.device(split_device):
+        if True:
             hp = self._hparams
             lout_int = [tf.int32] * hp.tacotron_num_gpus
             lout_float = [tf.float32] * hp.tacotron_num_gpus
@@ -122,12 +124,17 @@ class Tacotron():
         tower_residual = []
         tower_projected_residual = []
         
+        print("\n######### In Tacotron, before Declare GPU Devices#########\n")
+        
         # 1. Declare GPU Devices
         gpus = ["/gpu:{}".format(i) for i in
                 range(hp.tacotron_gpu_start_idx, hp.tacotron_gpu_start_idx + hp.tacotron_num_gpus)]
+        
         for i in range(hp.tacotron_num_gpus):
-            with tf.device(tf.train.replica_device_setter(ps_tasks=1, ps_device="/cpu:0",
-                                                          worker_device=gpus[i])):
+#             with tf.device(tf.train.replica_device_setter(ps_tasks=1, ps_device="/cpu:0",
+#                                                           worker_device=gpus[i])):
+            if True:
+
                 with tf.variable_scope("inference") as scope:
                     assert hp.tacotron_teacher_forcing_mode in ("constant", "scheduled")
                     if hp.tacotron_teacher_forcing_mode == "scheduled" and is_training:
@@ -141,19 +148,22 @@ class Tacotron():
  					
                     #embedded_inputs = tf.nn.embedding_lookup(self.embedding_table, tower_inputs[i])
                     #tmp = np.array(tower_inputs[i], dtype=np.float32)
-                    tower_inputs[i] = tf.cast(tower_inputs[i], tf.float32)
+#                     tower_inputs[i] = tf.cast(tower_inputs[i], tf.float32)
                     embedded_inputs = tower_inputs[i]
    
 
                     
                     # Encoder Cell ==> [batch_size, encoder_steps, encoder_lstm_units]
+                    
                     encoder_cell = TacotronEncoderCell(
                         EncoderConvolutions3D(is_training, hparams=hp, scope="encoder_convolutions"),
                         EncoderRNN(is_training, size=hp.encoder_lstm_units,
                                    zoneout=hp.tacotron_zoneout_rate, scope="encoder_LSTM"))
-                    
+                    #import ipdb; ipdb.set_trace()
                     encoder_outputs = encoder_cell(embedded_inputs, tower_input_lengths[i])
-                    
+                    #tmp_inp = tf.constant(value=np.ones([1,90,96,96,3]), dtype=tf.float32, shape=[1,90,96,96,3])
+                    #encoder_outputs = encoder_cell(tmp_inp, tower_input_lengths[i])
+                    #
                     # For shape visualization purpose
                     enc_conv_output_shape = encoder_cell.conv_output_shape
 
@@ -210,6 +220,7 @@ class Tacotron():
                         decoder_lstm,
                         frame_projection)
                     
+#                     import ipdb; ipdb.set_trace()
                     # Define the helper for our decoder
                     if is_training or is_evaluating or gta:
                         self.helper = TacoTrainingHelper(batch_size, tower_mel_targets[i], hp, gta,
