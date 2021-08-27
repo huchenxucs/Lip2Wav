@@ -64,11 +64,10 @@ class Tacotron():
             raise RuntimeError(
                 "Model can not be in training and evaluation modes at the same time!")
         
-        # split_device = "/cpu:0" if self._hparams.tacotron_num_gpus > 1 or \
-		# 						   self._hparams.split_on_cpu else "/gpu:{}".format(
-        #     self._hparams.tacotron_gpu_start_idx)
-        # with tf.device(split_device):
-        if True:
+        split_device = "/cpu:0" if self._hparams.tacotron_num_gpus > 1 or \
+								   self._hparams.split_on_cpu else "/gpu:{}".format(
+            self._hparams.tacotron_gpu_start_idx)
+        with tf.device(split_device):
             hp = self._hparams
             lout_int = [tf.int32] * hp.tacotron_num_gpus
             lout_float = [tf.float32] * hp.tacotron_num_gpus
@@ -127,9 +126,8 @@ class Tacotron():
         gpus = ["/gpu:{}".format(i) for i in
                 range(hp.tacotron_gpu_start_idx, hp.tacotron_gpu_start_idx + hp.tacotron_num_gpus)]
         for i in range(hp.tacotron_num_gpus):
-            # with tf.device(tf.train.replica_device_setter(ps_tasks=1, ps_device="/cpu:0",
-            #                                               worker_device=gpus[i])):
-            if True:
+            with tf.device(tf.train.replica_device_setter(ps_tasks=1, ps_device="/cpu:0",
+                                                          worker_device=gpus[i])):
                 with tf.variable_scope("inference") as scope:
                     assert hp.tacotron_teacher_forcing_mode in ("constant", "scheduled")
                     if hp.tacotron_teacher_forcing_mode == "scheduled" and is_training:
