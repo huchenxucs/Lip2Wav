@@ -1,10 +1,16 @@
 import numpy as np
-import sys, cv2, os, pickle, argparse, subprocess
+import sys
+import cv2
+import os
+import pickle
+import argparse
+import subprocess
 from tqdm import tqdm
 from shutil import copy
 from glob import glob
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "0"
 from synthesizer import inference as sif
+
 
 class Generator(object):
 	def __init__(self):
@@ -17,13 +23,13 @@ class Generator(object):
 		for fname in window_fnames:
 			img = cv2.imread(fname)
 			if img is None:
-				raise FileNotFoundError('Frames maybe missing in {}.' 
+				raise FileNotFoundError('Frames maybe missing in {}.'
 						' Delete the video to stop this exception!'.format(sample['folder']))
 
 			img = cv2.resize(img, (sif.hparams.img_size, sif.hparams.img_size))
 			window.append(img)
 
-		images = np.asarray(window) / 255. # T x H x W x 3
+		images = np.asarray(window) / 255.  # T x H x W x 3
 		return images
 
 	def vc(self, sample, outfile):
@@ -32,8 +38,16 @@ class Generator(object):
 		all_windows = []
 		i = 0
 		while i + hp.T <= len(images):
-			all_windows.append(images[i : i + hp.T])
+			all_windows.append(images[i: i + hp.T])
 			i += hp.T - hp.overlap
+
+		
+		last_mel_overlap = None
+		if i < len(images):
+			all_windows.append(images[-hp.T:])
+			last_img_overlap = hp.T - len(images[i:])
+			last_mel_overlap = int(hp.mel_overlap / hp.overlap * last_img_overlap) + 1
+# 			import ipdb; ipdb.set_trace()
 
 		for window_idx, window_fnames in enumerate(all_windows):
 			images = self.read_window(window_fnames)
@@ -41,6 +55,8 @@ class Generator(object):
 			s = self.synthesizer.synthesize_spectrograms(images)[0]
 			if window_idx == 0:
 				mel = s
+			elif window_idx == len(all_windows) - 1 and last_mel_overlap is not None:
+				mel = np.concatenate((mel, s[:, last_mel_overlap:]), axis=1)
 			else:
 				mel = np.concatenate((mel, s[:, hp.mel_overlap:]), axis=1)
 			
@@ -67,7 +83,7 @@ def get_image_list_from_csv(split, data_root):
     if split == 'train':
         text_data = text_data[sif.hparams.num_val_samples:]
     else:
-        #text_data = text_data[0:sif.hparams.num_val_samples]
+        # text_data = text_data[0:sif.hparams.num_val_samples]
         text_data = text_data[0:sif.hparams.num_val_samples]
 
     for item_id in text_data:
@@ -130,7 +146,7 @@ if __name__ == '__main__':
 	args = parser.parse_args()
 
 
-	## add speaker-specific parameters
+	# add speaker-specific parameters
 	with open(args.preset) as f:
 		sif.hparams.parse_json(f.read())
 
@@ -152,8 +168,8 @@ if __name__ == '__main__':
 		os.mkdir(WAVS_ROOT)
 	else:
 		pass
-		#files_to_delete.extend(list(glob(WAVS_ROOT + '*')))
-	#for f in files_to_delete: os.remove(f)
+		# files_to_delete.extend(list(glob(WAVS_ROOT + '*')))
+	# for f in files_to_delete: os.remove(f)
 
 	g = Generator()
 	template = 'ffmpeg -y -loglevel panic -ss {} -i {} -to {} -strict -2 {}'
